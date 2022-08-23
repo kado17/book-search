@@ -49,7 +49,6 @@ const Home: NextPage = () => {
         console.error(e)
         ret = 'ERROR'
       })
-    console.log(ret)
     setS(ret)
   }
   test()
