@@ -13,14 +13,20 @@ const Container = styled.div`
   min-height: 100vh;
   padding: 0 0.5rem;
 `
-const Home: NextPage = () => {
-  const [s, setS] = useState('')
 
-  const fetchXml = async () => {
+const InputBox = styled.input.attrs(() => ({ type: 'text' }))``
+const B = styled.button`
+  width: 10vh;
+  height: 5vh;
+`
+const Home: NextPage = () => {
+  const [text, sText] = useState('')
+
+  const fetchXml = async (url: string) => {
     const config = {
       // responseType: 'document', 'document'はブラウザ環境以外ではtextと同じ
       transformResponse: [
-        (data: any) => {
+        (data: string) => {
           let jsonData
           const parser = new xml2js.Parser({
             async: false,
@@ -33,28 +39,42 @@ const Home: NextPage = () => {
         },
       ],
     }
-    return await axios.get(
-      'https://iss.ndl.go.jp/api/sru?operation=searchRetrieve&onlyBib=true&maximumRecords=16&recordSchema=dcndl&recordPacking=xml&query=title=%22%E6%A1%9C%22%20AND%20from=%222018%22',
-      config
-    )
+    return await axios.get(url, config)
   }
 
-  const test = async () => {
-    let ret = ''
-    await fetchXml()
+  const createURL = (name: string) => {
+    let url =
+      'https://iss.ndl.go.jp/api/sru?operation=searchRetrieve&onlyBib=true&maximumRecords=2&recordSchema=dcndl&recordPacking=xml'
+    if (name != '') {
+      url += `&query=${encodeURI(`title=${name} AND mediatype=1`)}`
+    }
+    console.log(url)
+    return url
+  }
+
+  const test = async (n: string) => {
+    let ret = {}
+    await fetchXml(createURL(n))
       .then((response) => {
-        ret = JSON.stringify(response.data, null, 2)
+        ret = JSON.parse(JSON.stringify(response.data, null, 2))
       })
       .catch((e) => {
         console.error(e)
-        ret = 'ERROR'
+        ret = {}
       })
-    setS(ret)
+    console.log(ret)
+    if ('searchRetrieveResponse' in ret) {
+      console.log('!')
+    }
   }
-  test()
   return (
     <Container>
-      <p>{s}</p>
+      <InputBox
+        onChange={(e) => {
+          sText(e.target.value)
+        }}
+      />
+      <B onClick={() => test(text)} />
     </Container>
   )
 }
