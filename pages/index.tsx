@@ -24,12 +24,13 @@ const Home: NextPage = () => {
     | {
         searchRetrieveResponse: {
           $?: { [key: string]: string }
-          version: string
-          numberOfRecords: string
-          nextRecordPosition: string
+          version?: string
+          numberOfRecords?: string
+          nextRecordPosition?: string
           extraResponseData?: string
           //eslint-disable-next-line
-          records: { record: Array<Object> }
+          records?: { record: Array<{ [key: string]: unknown }> } | string
+          diagnostics?: { [key: string]: unknown }
         }
       }
     | { [key: string]: never }
@@ -65,87 +66,104 @@ const Home: NextPage = () => {
     return url
   }
 
-  const c2 = (obj: { [key: string]: string }) => {
-    console.log('c2', obj)
-    const ret = {}
+  const renameKey = (key: string) => {
+    const match = key.match(/^\w+:(\w+)/)
+    if (match) return match[1]
+    return key
+  }
 
-    if (typeof obj === 'object' && '$' in obj && '_' in obj) {
-      ret[obj['$']['xsi:type']] = obj['_']
-      console.log('exe', ret)
+  const convObj = (obj: { [key: string]: { [key: string]: string } | string }) => {
+    //{$: {xsi:type: 'ISO639-2'}, _: "jpn"} を{ISO639-2:"jpn"}に変換
+    if (
+      typeof obj === 'object' &&
+      '$' in obj &&
+      '_' in obj &&
+      typeof obj['_'] === 'string' &&
+      typeof obj['$'] === 'object'
+    ) {
+      const ret: { [key: string]: string } = {}
+      const key = renameKey(obj['$']['xsi:type'])
+      ret[key] = obj['_']
       return ret
     }
 
     return obj
   }
 
-  //eslint-disable-next-line
-  const clean = (records: { [key: string]: Array<{ [key: string]: string }> }) => {
+  const wrapValue = (value: unknown) => {
+    //引数の値が配列でなければ配列にして返す
+    if (Array.isArray(value)) return value
+    return [value]
+  }
+
+  const APIDataShaping = (
+    records: { [key: string]: Array<{ [key: string]: unknown }> } | { [key: string]: unknown }
+  ) => {
     const result = []
-    for (const r of records.record) {
-      const t: { [key: string]: string } = {}
-      console.log(r)
-      Object.keys(r.recordData['dcndl_simple:dc']).forEach((e) => {
+    for (const record of wrapValue(records)) {
+      const newRecord: { [key: string]: { [key: string]: unknown } | Array<unknown> } = {}
+      Object.keys(record.recordData['dcndl_simple:dc']).forEach((e) => {
         switch (e) {
           case '$':
-          case '_':
-            t[e] = r.recordData['dcndl_simple:dc'][e]
+          case 'rdfs:seeAlso':
             break
 
           default: {
-            let tmp = e
-            const value = r.recordData['dcndl_simple:dc'][e]
-            const m = e.match(/^\w+:(\w+)/)
-            if (m) {
-              tmp = m[1]
-            }
+            const key = renameKey(e)
+            const values = record.recordData['dcndl_simple:dc'][e]
 
-            if (Array.isArray(value) && typeof value !== 'string') {
-              const ret = {}
-              const re = []
-              for (const ll of value) {
-                if (typeof ll === 'object') {
-                  Object.assign(ret, c2(ll))
-                  console.log('c2log', c2(ll), ret)
-                } else if (typeof ll === 'string') {
-                  re.push(ll)
+            if (Array.isArray(values) && typeof values !== 'string') {
+              const newValueObj = {}
+              const newValueArray = []
+              for (const value of values) {
+                if (typeof value === 'object') {
+                  Object.assign(newValueObj, convObj(value))
+                } else if (typeof value === 'string') {
+                  newValueArray.push(value)
                 }
               }
-              if (re.length === 0) {
-                console.log('ret', ret)
-                t[tmp] = ret
+              if (newValueArray.length === 0) {
+                newRecord[key] = newValueObj
               } else {
-                if (Object.keys(ret).length !== 0) {
-                  re.push(ret)
+                if (Object.keys(newValueObj).length !== 0) {
+                  //publicationPlace
+                  newValueArray.push(newValueObj)
                 }
-                t[tmp] = re
+                newRecord[key] = newValueArray
               }
-            } else if (typeof value === 'object') {
-              t[tmp] = c2(value)
+            } else if (typeof values === 'object') {
+              newRecord[key] = convObj(values)
             } else {
-              t[tmp] = r.recordData['dcndl_simple:dc'][e]
+              newRecord[key] = values
             }
           }
         }
       })
-      result.push(t)
+      result.push(newRecord)
     }
     console.log(result)
   }
 
   const test = async (n: string) => {
-    let ret: responce = {}
+    let resData: responce = {}
     await fetchXml(createURL(n))
       .then((response) => {
-        ret = response.data
+        resData = response.data
       })
       .catch((e) => {
         console.error(e)
-        ret = {}
+        resData = {}
       })
-    console.log(ret)
-    if (Object.hasOwnProperty.call(ret, 'searchRetrieveResponse')) {
-      clean(ret['searchRetrieveResponse']['records'])
-      console.log('!')
+    console.log(resData)
+    if ('searchRetrieveResponse' in resData) {
+      const resDataSRR = resData['searchRetrieveResponse']
+      if ('diagnostics' in resDataSRR) {
+        console.log('検索中にエラーが発生しました。')
+      } else if ('numberOfRecords' in resDataSRR && parseInt(resDataSRR['numberOfRecords']) < 1) {
+        console.log('結果なし')
+      } else {
+        APIDataShaping(resDataSRR['records']['record'])
+      }
     }
   }
   return (
