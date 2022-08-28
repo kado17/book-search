@@ -32,7 +32,6 @@ const Home: NextPage = () => {
           numberOfRecords?: string
           nextRecordPosition?: string
           extraResponseData?: string
-          //eslint-disable-next-line
           records?: { record: Array<{ [key: string]: unknown }> } | string
           diagnostics?: { [key: string]: unknown }
         }
@@ -130,11 +129,9 @@ const Home: NextPage = () => {
           case '$':
           case 'rdfs:seeAlso':
             break
-
           default: {
             const key = renameKey(e)
             const values = record.recordData['dcndl_simple:dc'][e]
-
             if (Array.isArray(values) && typeof values !== 'string') {
               const newValueObj = {}
               const newValueArray = []
