@@ -13,7 +13,11 @@ const Container = styled.div`
   min-height: 100vh;
   padding: 0 0.5rem;
 `
+const Box = styled.div`
+  display: flex;
+`
 
+const BoxLable = styled.label``
 const InputBox = styled.input.attrs(() => ({ type: 'text' }))``
 const B = styled.button`
   width: 10vh;
@@ -34,7 +38,7 @@ const Home: NextPage = () => {
         }
       }
     | { [key: string]: never }
-  const [text, sText] = useState('')
+  const [queryElement, setQueryElement] = useState({})
 
   const fetchXml = async (url: string) => {
     const config = {
@@ -56,14 +60,33 @@ const Home: NextPage = () => {
     return await axios.get(url, config)
   }
 
-  const createURL = (name: string) => {
-    let url =
-      'https://iss.ndl.go.jp/api/sru?operation=searchRetrieve&onlyBib=true&maximumRecords=10&recordSchema=dcndl_simple&recordPacking=xml'
-    if (name != '') {
-      url += `&query=${encodeURI(`title=${name} AND mediatype=1`)}`
-    }
-    console.log(url)
-    return url
+  const createURL = (queryElement: { [key: string]: string }) => {
+    const url =
+      'https://iss.ndl.go.jp/api/sru?operation=searchRetrieve&onlyBib=true&maximumRecords=10&recordSchema=dcndl_simple&recordPacking=xml&query=mediatype=1'
+    let query = ''
+    Object.keys(queryElement).forEach((key) => {
+      if (queryElement[key] != '') {
+        if (['title', 'creator', 'publisher'].includes(key)) {
+          for (const q of queryElement[key].split(' ')) {
+            if (q !== ' ') query += ` AND ${key}=${q}`
+          }
+        } else {
+          let exp: RegExp
+          if (['from', 'until'].includes(key)) exp = /^(\d{4}|\d{4}-\d{2}|\d{4}-\d{2}-\d{2})$/
+          else exp = /^(\d{10}|\d{13})$/
+          const m = queryElement[key].match(exp)
+          if (!m) {
+            console.log(`${key}でエラー`)
+            return ''
+          }
+          query += ` AND ${key}=${m[0]}`
+        }
+      }
+    })
+
+    if (query === '') return ''
+    console.log(url + encodeURI(query), query)
+    return url + encodeURI(query)
   }
 
   const renameKey = (key: string) => {
@@ -144,36 +167,55 @@ const Home: NextPage = () => {
     console.log(result)
   }
 
-  const test = async (n: string) => {
+  const test = async (queryElement: { [key: string]: string }) => {
     let resData: responce = {}
-    await fetchXml(createURL(n))
-      .then((response) => {
-        resData = response.data
-      })
-      .catch((e) => {
-        console.error(e)
-        resData = {}
-      })
-    console.log(resData)
-    if ('searchRetrieveResponse' in resData) {
-      const resDataSRR = resData['searchRetrieveResponse']
-      if ('diagnostics' in resDataSRR) {
-        console.log('検索中にエラーが発生しました。')
-      } else if ('numberOfRecords' in resDataSRR && parseInt(resDataSRR['numberOfRecords']) < 1) {
-        console.log('結果なし')
-      } else {
-        APIDataShaping(resDataSRR['records']['record'])
+    const url = createURL(queryElement)
+    if (url === '') {
+      console.log('要素を入力してください')
+    } else {
+      await fetchXml(url)
+        .then((response) => {
+          resData = response.data
+        })
+        .catch((e) => {
+          console.error(e)
+          resData = {}
+        })
+      console.log(resData)
+      if ('searchRetrieveResponse' in resData) {
+        const resDataSRR = resData['searchRetrieveResponse']
+        if ('diagnostics' in resDataSRR) {
+          console.log('検索中にエラーが発生しました。')
+        } else if ('numberOfRecords' in resDataSRR && parseInt(resDataSRR['numberOfRecords']) < 1) {
+          console.log('結果なし')
+        } else {
+          APIDataShaping(resDataSRR['records']['record'])
+        }
       }
     }
   }
+
+  const mokuzi = [
+    ['タイトル', 'title'],
+    ['著者', 'creator'],
+    ['出版社', 'publisher'],
+    ['開始出版年月日', 'from'],
+    ['終了出版年月日', 'until'],
+    ['ISBN', 'isbn'],
+  ]
   return (
     <Container>
-      <InputBox
-        onChange={(e) => {
-          sText(e.target.value)
-        }}
-      />
-      <B onClick={() => test(text)} />
+      {mokuzi.map((array, index) => (
+        <Box key={index}>
+          <BoxLable>{`${array[0]}：`}</BoxLable>
+          <InputBox
+            onChange={(e) => {
+              setQueryElement((s) => ({ ...s, [array[1]]: e.target.value }))
+            }}
+          />
+        </Box>
+      ))}
+      <B onClick={() => test(queryElement)} />
     </Container>
   )
 }
