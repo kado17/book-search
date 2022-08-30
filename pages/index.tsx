@@ -103,12 +103,11 @@ const Home: NextPage = () => {
       typeof obj['_'] === 'string' &&
       typeof obj['$'] === 'object'
     ) {
-      const ret: { [key: string]: string } = {}
+      const newObj: { [key: string]: string } = {}
       const key = renameKey(obj['$']['xsi:type'])
-      ret[key] = obj['_']
-      return ret
+      newObj[key] = obj['_']
+      return newObj
     }
-
     return obj
   }
 
@@ -162,6 +161,38 @@ const Home: NextPage = () => {
       result.push(newRecord)
     }
     console.log(result)
+    return result
+  }
+
+  const createHtml = (
+    ndlResult: {
+      [key: string]:
+        | unknown[]
+        | {
+            [key: string]: unknown
+          }
+    }[]
+  ) => {
+    console.log(ndlResult)
+    const result = []
+    for (const obj of ndlResult) {
+      const hoge: { [key: string]: string } = {}
+      if ('identfier' in obj && 'ISBN' in obj['identfier']) {
+        console.log('')
+        //openDBにURLをとばす
+        // if(r === True){
+        //opemBDのデータを代入
+        //break;
+      }
+      //普通に代入
+      for (const key in ['title', 'creator', 'publisher'])
+        if (key in obj) {
+          const value = obj[key]
+          if (Array.isArray(value)) {
+            hoge[key] = String(value[0])
+          } else hoge[key] = String(value)
+        }
+    }
   }
 
   const test = async (queryElement: { [key: string]: string }) => {
@@ -186,7 +217,7 @@ const Home: NextPage = () => {
         } else if ('numberOfRecords' in resDataSRR && parseInt(resDataSRR['numberOfRecords']) < 1) {
           console.log('結果なし')
         } else {
-          APIDataShaping(resDataSRR['records']['record'])
+          const ndlResult = APIDataShaping(resDataSRR['records']['record'])
         }
       }
     }
