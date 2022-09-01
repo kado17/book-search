@@ -3,6 +3,8 @@ import type { NextPage } from 'next'
 import { useState } from 'react'
 import styled from 'styled-components'
 import xml2js from 'xml2js'
+import type openBDRes from '../public/openBDResExample.json'
+type OPENBDRES = typeof openBDRes
 
 const Container = styled.div`
   display: flex;
@@ -164,7 +166,22 @@ const Home: NextPage = () => {
     return result
   }
 
-  const createHtml = (
+  const getOpenBD = async (isbn: string) => {
+    const url = `https://api.openbd.jp/v1/get?isbn=${isbn}`
+    console.log(url)
+    let resData: OPENBDRES | { [key: string]: never } = {}
+    await axios
+      .get(url)
+      .then((response) => {
+        if (response.data[0] !== null) resData = response.data[0]
+      })
+      .catch((e) => {
+        console.error(e)
+      })
+    return resData
+  }
+
+  const createSearchResult = async (
     ndlResult: {
       [key: string]:
         | unknown[]
@@ -176,23 +193,35 @@ const Home: NextPage = () => {
     console.log(ndlResult)
     const result = []
     for (const obj of ndlResult) {
-      const hoge: { [key: string]: string } = {}
-      if ('identfier' in obj && 'ISBN' in obj['identfier']) {
-        console.log('')
-        //openDBにURLをとばす
-        // if(r === True){
-        //opemBDのデータを代入
-        //break;
+      const item: { [key: string]: string } = {}
+      if ('identifier' in obj && 'ISBN' in obj['identifier']) {
+        const resData = await getOpenBD(String(obj['identifier']['ISBN']))
+        if (Object.keys(resData).length !== 0) {
+          item['title'] = resData['summary']['title']
+          item['creator'] = resData['summary']['author']
+          item['publisher'] = resData['summary']['publisher']
+          item['cover'] = resData['summary']['cover']
+          if ('TextContent' in resData['onix']['CollateralDetail'])
+            item['textContent'] = resData['onix']['CollateralDetail']['TextContent'][0]['Text']
+          result.push(item)
+          console.log('continue')
+          continue
+        }
       }
       //普通に代入
-      for (const key in ['title', 'creator', 'publisher'])
+      console.log('normal', obj)
+      for (const key of ['title', 'creator', 'publisher']) {
         if (key in obj) {
           const value = obj[key]
           if (Array.isArray(value)) {
-            hoge[key] = String(value[0])
-          } else hoge[key] = String(value)
+            item[key] = String(value[0])
+          } else item[key] = String(value)
         }
+      }
+      result.push(item)
     }
+    console.log(result)
+    return result
   }
 
   const test = async (queryElement: { [key: string]: string }) => {
@@ -218,6 +247,7 @@ const Home: NextPage = () => {
           console.log('結果なし')
         } else {
           const ndlResult = APIDataShaping(resDataSRR['records']['record'])
+          console.log('RESULT', createSearchResult(ndlResult))
         }
       }
     }
