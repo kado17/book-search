@@ -1,0 +1,180 @@
+{
+  "onix": {
+    "RecordReference": "9784898154151",
+    "NotificationType": "03",
+    "ProductIdentifier": {
+      "ProductIDType": "15",
+      "IDValue": "9784898154151"
+    },
+    "DescriptiveDetail": {
+      "ProductComposition": "00",
+      "ProductForm": "BA",
+      "ProductFormDetail": "B119",
+      "TitleDetail": {
+        "TitleType": "01",
+        "TitleElement": {
+          "TitleElementLevel": "01",
+          "TitleText": {
+            "collationkey": "トマリダシタラハシラナイ",
+            "content": "止まりだしたら走らない"
+          }
+        }
+      },
+      "Contributor": [
+        {
+          "SequenceNumber": "1",
+          "ContributorRole": ["A01"],
+          "PersonName": {
+            "collationkey": "シナダ ユウ",
+            "content": "品田 遊"
+          },
+          "BiographicalNote": "twitterのスタープレイヤーであり漫画家、大喜利界の星、『ダ・ヴィンチ・恐山』の作家名。フォロワー数は6万5千人を突破している。"
+        },
+        {
+          "SequenceNumber": "2",
+          "ContributorRole": ["A12"],
+          "PersonName": {
+            "collationkey": "エラーヨンマルサン",
+            "content": "error403"
+          },
+          "BiographicalNote": "twitterで26万人のフォローワーを誇る。"
+        }
+      ],
+      "Language": [
+        {
+          "LanguageRole": "01",
+          "LanguageCode": "jpn"
+        }
+      ],
+      "Extent": [
+        {
+          "ExtentType": "11",
+          "ExtentValue": "248",
+          "ExtentUnit": "03"
+        }
+      ],
+      "Subject": [
+        {
+          "MainSubject": "",
+          "SubjectSchemeIdentifier": "78",
+          "SubjectCode": "0095"
+        },
+        {
+          "SubjectSchemeIdentifier": "79",
+          "SubjectCode": "01"
+        },
+        {
+          "SubjectSchemeIdentifier": "20",
+          "SubjectHeadingText": "twitter;ツイッター;error403;ダヴィンチ恐山"
+        }
+      ],
+      "Audience": [
+        {
+          "AudienceCodeType": "22",
+          "AudienceCodeValue": "00"
+        }
+      ]
+    },
+    "CollateralDetail": {
+      "TextContent": [
+        {
+          "TextType": "02",
+          "ContentAudience": "00",
+          "Text": "あの“ダ・ヴィンチ・恐山”が、“品田遊”名義で満を持して小説家デビュー！内向しすぎて破壊的!?中央線車内で起こる24篇。"
+        }
+      ],
+      "SupportingResource": [
+        {
+          "ResourceContentType": "01",
+          "ContentAudience": "01",
+          "ResourceMode": "03",
+          "ResourceVersion": [
+            {
+              "ResourceForm": "02",
+              "ResourceVersionFeature": [
+                {
+                  "ResourceVersionFeatureType": "01",
+                  "FeatureValue": "D502"
+                },
+                {
+                  "ResourceVersionFeatureType": "04",
+                  "FeatureValue": "9784898154151.jpg"
+                }
+              ],
+              "ResourceLink": "https://cover.openbd.jp/9784898154151.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    "PublishingDetail": {
+      "Imprint": {
+        "ImprintIdentifier": [
+          {
+            "ImprintIDType": "19",
+            "IDValue": "89815"
+          },
+          {
+            "ImprintIDType": "24",
+            "IDValue": "8989"
+          }
+        ],
+        "ImprintName": "リトル・モア"
+      },
+      "Publisher": {
+        "PublishingRole": "01",
+        "PublisherIdentifier": [
+          {
+            "PublisherIDType": "19",
+            "IDValue": "89815"
+          },
+          {
+            "PublisherIDType": "24",
+            "IDValue": "8989"
+          }
+        ],
+        "PublisherName": "リトル・モア"
+      },
+      "PublishingDate": [
+        {
+          "PublishingDateRole": "01",
+          "Date": "20150708"
+        },
+        {
+          "PublishingDateRole": "25",
+          "Date": "20150630"
+        }
+      ]
+    },
+    "ProductSupply": {
+      "SupplyDetail": {
+        "ReturnsConditions": {
+          "ReturnsCodeType": "04",
+          "ReturnsCode": "03"
+        },
+        "ProductAvailability": "99",
+        "Price": [
+          {
+            "PriceType": "03",
+            "PriceAmount": "1600",
+            "CurrencyCode": "JPY"
+          }
+        ]
+      }
+    }
+  },
+  "hanmoto": {
+    "datemodified": "2015-08-13 15:42:48",
+    "datecreated": "2015-08-13 15:42:48"
+  },
+  "summary": {
+    "isbn": "9784898154151",
+    "title": "止まりだしたら走らない",
+    "volume": "",
+    "series": "",
+    "publisher": "リトル・モア",
+    "pubdate": "20150708",
+    "cover": "https://cover.openbd.jp/9784898154151.jpg",
+    "author": "品田遊／著 error403／イラスト"
+  }
+}
