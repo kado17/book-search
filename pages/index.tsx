@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { useState } from 'react'
 import styled from 'styled-components'
-import * as fetchApi from '../src/fetch_and_data_shaping'
+import * as fetchApi from '../src/fetch_and_data_organizing'
 
 const Container = styled.div`
   display: flex;

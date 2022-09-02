@@ -1,6 +1,6 @@
 import axios from 'axios'
 import xml2js from 'xml2js'
-import type openBDRes from './openBD_responce_example.json'
+import type openBDRes from './openbd_responce_example.json'
 type openBDRes = typeof openBDRes
 
 type NDLBookDataValue =
@@ -173,7 +173,6 @@ const convBookData = async (records: organizedObj[]) => {
         if ('TextContent' in resOpenBD['onix']['CollateralDetail'])
           item['textContent'] = resOpenBD['onix']['CollateralDetail']['TextContent'][0]['Text']
         result.push(item)
-        console.log('continue')
         continue
       }
     }
