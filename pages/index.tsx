@@ -29,8 +29,6 @@ const Home: NextPage = () => {
     ['タイトル', 'title'],
     ['著者', 'creator'],
     ['出版社', 'publisher'],
-    ['開始出版年月日', 'from'],
-    ['終了出版年月日', 'until'],
     ['ISBN', 'isbn'],
   ]
 

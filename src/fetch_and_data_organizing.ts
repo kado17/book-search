@@ -202,9 +202,7 @@ const geneNDLAccessURL = (queryElement: { [key: string]: string }): string => {
           if (q !== ' ') query += ` AND ${key}=${q}`
         }
       } else {
-        let exp: RegExp
-        if (['from', 'until'].includes(key)) exp = /^(\d{4}|\d{4}-\d{2}|\d{4}-\d{2}-\d{2})$/
-        else exp = /^(\d{10}|\d{13})$/
+        const exp = /^(\d{10}|\d{13})$/
         const m = queryElement[key].match(exp)
         if (!m) {
           console.log(`${key}でエラー`)
