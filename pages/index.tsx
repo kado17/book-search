@@ -33,6 +33,7 @@ const Home: NextPage = () => {
     ['終了出版年月日', 'until'],
     ['ISBN', 'isbn'],
   ]
+
   return (
     <Container>
       {mokuzi.map((array, index) => (
