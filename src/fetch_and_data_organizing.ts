@@ -30,6 +30,7 @@ type NDLResUpstream = {
 type organizedObj = {
   [key: string]:
     | string
+    | { [key: string]: { [key: string]: string } }
     | { [key: string]: string | { [key: string]: string } }
     | Array<string | { [key: string]: string }>
 }
@@ -145,6 +146,7 @@ const convBookData = async (records: organizedObj[]) => {
       title: '',
       creator: '',
       publisher: '',
+      issued: '',
       cover: '',
       textContent: '',
     }
@@ -170,6 +172,7 @@ const convBookData = async (records: organizedObj[]) => {
         item['creator'] = resOpenBD['summary']['author']
         item['publisher'] = resOpenBD['summary']['publisher']
         item['cover'] = resOpenBD['summary']['cover']
+        item['issued'] = resOpenBD['summary']['pubdate']
         if ('TextContent' in resOpenBD['onix']['CollateralDetail'])
           item['textContent'] = resOpenBD['onix']['CollateralDetail']['TextContent'][0]['Text']
         result.push(item)
@@ -177,11 +180,14 @@ const convBookData = async (records: organizedObj[]) => {
       }
     }
     //普通に代入
-    for (const key of ['title', 'creator', 'publisher']) {
+    for (const key of ['title', 'creator', 'publisher', 'issued']) {
       if (key in record) {
         const value = record[key]
         if (Array.isArray(value)) {
-          item[key] = String(value[0])
+          item[key] = `${String(value.join('  '))}…`
+        } else if (key === 'issued' && value instanceof Object && !(value instanceof Array)) {
+          const tmpKey: string[] = Object.keys(value)
+          item[key] = String(value[tmpKey[0]])
         } else item[key] = String(value)
       }
     }
@@ -193,7 +199,7 @@ const convBookData = async (records: organizedObj[]) => {
 
 const geneNDLAccessURL = (queryElement: { [key: string]: string }): string => {
   const url =
-    'https://iss.ndl.go.jp/api/sru?operation=searchRetrieve&onlyBib=true&maximumRecords=10&recordSchema=dcndl_simple&recordPacking=xml&query=mediatype=1 AND dpid=iss-ndl-opac'
+    'https://iss.ndl.go.jp/api/sru?operation=searchRetrieve&onlyBib=true&maximumRecords=20&recordSchema=dcndl_simple&recordPacking=xml&query=mediatype=1 AND dpid=iss-ndl-opac'
   let query = ''
   Object.keys(queryElement).forEach((key) => {
     if (queryElement[key] != '') {
@@ -223,6 +229,7 @@ export const getBookData = async (queryElement: { [key: string]: string }) => {
   const url = geneNDLAccessURL(queryElement)
   if (url === '') {
     console.log('要素を入力してください')
+    return '要素を入力して下さい'
   } else {
     await fetchNDLXml(url)
       .then((response) => {
@@ -237,8 +244,10 @@ export const getBookData = async (queryElement: { [key: string]: string }) => {
       const resDataSRR = resData['searchRetrieveResponse']
       if ('diagnostics' in resDataSRR) {
         console.log('検索中にエラーが発生しました。')
+        return '検索中にエラーが発生している'
       } else if ('numberOfRecords' in resDataSRR && parseInt(resDataSRR['numberOfRecords']) < 1) {
         console.log('結果なし')
+        return '結果なし'
       } else {
         console.log('引数', resDataSRR['records']['record'])
         const ndlResult = NDLDataOrganizing(wrapValue(resDataSRR['records']['record']))
