@@ -197,9 +197,9 @@ const convBookData = async (records: organizedObj[]) => {
   return result
 }
 
-const geneNDLAccessURL = (queryElement: { [key: string]: string }): string => {
+export const geneNDLAccessURL = (queryElement: { [key: string]: string }): string => {
   const url =
-    'https://iss.ndl.go.jp/api/sru?operation=searchRetrieve&onlyBib=true&maximumRecords=20&recordSchema=dcndl_simple&recordPacking=xml&query=mediatype=1 AND dpid=iss-ndl-opac'
+    'https://iss.ndl.go.jp/api/sru?operation=searchRetrieve&onlyBib=true&recordSchema=dcndl_simple&recordPacking=xml&query=mediatype=1 AND dpid=iss-ndl-opac'
   let query = ''
   Object.keys(queryElement).forEach((key) => {
     if (queryElement[key] != '') {
@@ -220,16 +220,22 @@ const geneNDLAccessURL = (queryElement: { [key: string]: string }): string => {
   })
 
   if (query === '') return ''
+  query += '&maximumRecords=20'
   console.log(encodeURI(url + query), query)
   return encodeURI(url + query)
 }
 
-export const getBookData = async (queryElement: { [key: string]: string }) => {
+export const getBookData = async (url: string) => {
   let resData: NDLResUpstream | { [key: string]: never } = {}
-  const url = geneNDLAccessURL(queryElement)
+  const result: {
+    csResult: { [key: string]: string }[] | undefined
+    numberOfRecords: number
+    errMsg: string
+  } = { csResult: undefined, numberOfRecords: 0, errMsg: '' }
   if (url === '') {
     console.log('要素を入力してください')
-    return '要素を入力して下さい'
+    result.errMsg = '要素を入力してください'
+    return result
   } else {
     await fetchNDLXml(url)
       .then((response) => {
@@ -244,16 +250,20 @@ export const getBookData = async (queryElement: { [key: string]: string }) => {
       const resDataSRR = resData['searchRetrieveResponse']
       if ('diagnostics' in resDataSRR) {
         console.log('検索中にエラーが発生しました。')
-        return '検索中にエラーが発生している'
+        result.errMsg = '検索中にエラーが発生している'
+        return result
       } else if ('numberOfRecords' in resDataSRR && parseInt(resDataSRR['numberOfRecords']) < 1) {
         console.log('結果なし')
-        return '結果なし'
+        result.errMsg = '結果なし'
+        return result
       } else {
         console.log('引数', resDataSRR['records']['record'])
         const ndlResult = NDLDataOrganizing(wrapValue(resDataSRR['records']['record']))
         const csResult = await convBookData(ndlResult)
         console.log('RESULT', csResult)
-        return csResult
+        result.csResult = csResult
+        result.numberOfRecords = parseInt(resDataSRR['numberOfRecords'])
+        return result
       }
     }
   }

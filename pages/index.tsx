@@ -26,12 +26,14 @@ const B = styled.button`
 const Frame = styled.div`
   display: flex;
   flex-wrap: wrap;
+  justify-items: center;
   width: 75%;
 `
 
 const ItemContainer = styled.div`
   display: flex;
-  width: 50%;
+  width: 45%;
+  margin: 0 auto;
   background-color: white;
   border: 1vh solid black;
 
@@ -47,9 +49,10 @@ const ItemTextContainer = styled.div`
 
 const Home: NextPage = () => {
   const [queryElement, setQueryElement] = useState({})
-  const [searchResult, setSearchResult] = useState<
-    { [key: string]: string }[] | string | undefined
-  >('')
+  const [searchResult, setSearchResult] = useState<{ [key: string]: string }[] | undefined>(
+    undefined
+  )
+  const [numberOfRecords, setNumberOfRecords] = useState(0)
 
   const mokuzi = [
     ['タイトル', 'title'],
@@ -72,9 +75,15 @@ const Home: NextPage = () => {
       ))}
       <B
         onClick={() => {
-          fetchApi.getBookData(queryElement).then((res) => {
-            console.log(Img)
-            setSearchResult(res)
+          const url = fetchApi.geneNDLAccessURL(queryElement)
+          fetchApi.getBookData(url).then((res) => {
+            if (res === undefined) console.log('UNDEF')
+            else {
+              const { csResult, numberOfRecords, errMsg } = res
+              setSearchResult(csResult)
+              setNumberOfRecords(numberOfRecords)
+              console.log(errMsg)
+            }
           })
         }}
       />
@@ -86,7 +95,7 @@ const Home: NextPage = () => {
             <ItemContainer key={index}>
               <img src={obj.cover !== '' ? obj.cover : Img.src} alt="img" />
               <ItemTextContainer>
-                <h2>{obj.title}</h2>
+                <h4>{obj.title}</h4>
                 <p>{obj.textContent}</p>
                 <p>{obj.creator}</p>
                 <p>{obj.publisher}</p>
